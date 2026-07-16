@@ -31,6 +31,122 @@ function pageHref(section, slug) {
   return `/${encodeURIComponent(section)}/${encodeSlug(slug)}/`;
 }
 
+function pageRoute(page, homePath) {
+  if (page.relativePath === homePath) {
+    return '/';
+  }
+
+  if (!page.section) {
+    const segment = path.basename(page.relativePath, '.md');
+    return `/${encodeURIComponent(segment)}/`;
+  }
+
+  return pageHref(page.section, page.slug);
+}
+
+function contentHref(page, basePath, homePath) {
+  const route = pageRoute(page, homePath);
+  return route === '/' ? `${basePath}/` : `${basePath}${route}`;
+}
+
+function normalizeNavigationEntries(navigation) {
+  if (!navigation) return [];
+
+  if (Array.isArray(navigation)) {
+    return navigation
+      .map((entry) => {
+        if (typeof entry === 'string') {
+          return { label: entry };
+        }
+        if (entry && typeof entry === 'object') {
+          const [label, path] = Object.entries(entry)[0];
+          return { label, path: path ? String(path) : undefined };
+        }
+        return null;
+      })
+      .filter(Boolean);
+  }
+
+  if (typeof navigation === 'object') {
+    return Object.entries(navigation).map(([label, path]) => ({
+      label,
+      path: path ? String(path) : undefined,
+    }));
+  }
+
+  return [];
+}
+
+function isSectionFolder(name) {
+  if (SKIP_DIRS.has(name) || name.startsWith('.')) return false;
+  const fullPath = path.join(CONTENT_DIR, name);
+  return fs.existsSync(fullPath) && fs.statSync(fullPath).isDirectory();
+}
+
+function findPageByRelativePath(pagesByPath, targetPath) {
+  const normalized = targetPath.replace(/\\/g, '/');
+  if (pagesByPath.has(normalized)) {
+    return pagesByPath.get(normalized);
+  }
+
+  const basename = path.basename(normalized);
+  for (const page of pagesByPath.values()) {
+    if (page.relativePath.endsWith(`/${basename}`) || page.relativePath === basename) {
+      return page;
+    }
+  }
+
+  return null;
+}
+
+function resolveNavigationItem({ label, path: explicitPath }, pagesByPath, homePath) {
+  if (explicitPath) {
+    const page = findPageByRelativePath(pagesByPath, explicitPath);
+    if (page) {
+      return {
+        label,
+        href: pageRoute(page, homePath),
+        type: 'page',
+      };
+    }
+  }
+
+  if (isSectionFolder(label)) {
+    return {
+      label,
+      href: `/${encodeURIComponent(label)}/`,
+      type: 'section',
+    };
+  }
+
+  for (const page of pagesByPath.values()) {
+    if (!page.section && path.basename(page.relativePath, '.md') === label) {
+      return {
+        label,
+        href: pageRoute(page, homePath),
+        type: 'page',
+      };
+    }
+  }
+
+  const sectionPage = [...pagesByPath.values()].find(
+    (page) => page.section && page.slug === slugify(label)
+  );
+  if (sectionPage) {
+    return {
+      label,
+      href: pageRoute(sectionPage, homePath),
+      type: 'page',
+    };
+  }
+
+  return {
+    label,
+    href: `/${encodeURIComponent(label)}/`,
+    type: 'section',
+  };
+}
+
 function buildVaultIndex(rootDir) {
   const index = new Map();
 
@@ -133,7 +249,21 @@ function copyAsset(relativePath, assetMap) {
   return publicPath;
 }
 
-function preprocessMarkdown(body, sourceFile, index, pagesByPath, assetMap, basePath) {
+function parseMarkdownFile(relativePath, fullPath, section = null) {
+  const parsed = matter(fs.readFileSync(fullPath, 'utf8'));
+  const baseSlug = slugify(path.basename(relativePath));
+  const slug = parsed.data.permalink || baseSlug;
+
+  return {
+    section,
+    slug,
+    relativePath,
+    frontmatter: parsed.data,
+    body: parsed.content.trim(),
+  };
+}
+
+function preprocessMarkdown(body, sourceFile, index, pagesByPath, assetMap, basePath, homePath) {
   let processed = body;
 
   processed = processed.replace(/!\[\[([^\]]+)\]\]/g, (_, raw) => {
@@ -164,7 +294,7 @@ function preprocessMarkdown(body, sourceFile, index, pagesByPath, assetMap, base
     if (resolved.endsWith('.md')) {
       const page = pagesByPath.get(resolved);
       if (page) {
-        const href = `${basePath}/${encodeURIComponent(page.section)}/${encodeSlug(page.slug)}/`;
+        const href = contentHref(page, basePath, homePath);
         const title = page.frontmatter.title || page.slug;
         return `\n\n> **${title}**\n>\n> [Read more](${href})\n\n`;
       }
@@ -185,7 +315,7 @@ function preprocessMarkdown(body, sourceFile, index, pagesByPath, assetMap, base
     if (resolved.endsWith('.md')) {
       const page = pagesByPath.get(resolved);
       if (page) {
-        const href = `${basePath}/${encodeURIComponent(page.section)}/${encodeSlug(page.slug)}/`;
+        const href = contentHref(page, basePath, homePath);
         return `[${alias || page.frontmatter.title || page.slug}](${href})`;
       }
     }
@@ -216,20 +346,41 @@ function scanPages(config) {
     for (const file of files) {
       const relativePath = `${section}/${file}`.replace(/\\/g, '/');
       const fullPath = path.join(CONTENT_DIR, relativePath);
-      const parsed = matter(fs.readFileSync(fullPath, 'utf8'));
-      const baseSlug = slugify(path.basename(file));
-      const slug = parsed.data.permalink || baseSlug;
-      rawPages.push({
-        section,
-        slug,
-        relativePath,
-        frontmatter: parsed.data,
-        body: parsed.content.trim(),
-      });
+      rawPages.push(parseMarkdownFile(relativePath, fullPath, section));
     }
   }
 
-  const pagesByPath = new Map(rawPages.map((p) => [p.relativePath, p]));
+  const homePath = config.home?.replace(/\\/g, '/');
+  const standalonePages = [];
+
+  for (const file of fg.sync('*.md', { cwd: CONTENT_DIR })) {
+    const relativePath = file.replace(/\\/g, '/');
+    if (relativePath === homePath) continue;
+    if (rawPages.some((p) => p.relativePath === relativePath)) continue;
+
+    const fullPath = path.join(CONTENT_DIR, relativePath);
+    standalonePages.push(parseMarkdownFile(relativePath, fullPath, null));
+  }
+
+  let standaloneHomePage = null;
+
+  if (
+    homePath &&
+    homePath.endsWith('.md') &&
+    !rawPages.some((p) => p.relativePath === homePath)
+  ) {
+    const homeFullPath = path.join(CONTENT_DIR, homePath);
+    if (fs.existsSync(homeFullPath)) {
+      standaloneHomePage = parseMarkdownFile(homePath, homeFullPath, null);
+    }
+  }
+
+  const allContentPages = [
+    ...rawPages,
+    ...standalonePages,
+    ...(standaloneHomePage ? [standaloneHomePage] : []),
+  ];
+  const pagesByPath = new Map(allContentPages.map((p) => [p.relativePath, p]));
   const index = buildVaultIndex(CONTENT_DIR);
   const assetMap = {};
   const basePath = normalizeBasePath(config.site?.basePath);
@@ -247,9 +398,40 @@ function scanPages(config) {
       index,
       pagesByPath,
       assetMap,
-      basePath
+      basePath,
+      homePath
     ),
   }));
+
+  const processedStandalonePages = standalonePages.map((page) => ({
+    ...page,
+    title: page.frontmatter.title || page.slug,
+    processedBody: preprocessMarkdown(
+      page.body,
+      page.relativePath,
+      index,
+      pagesByPath,
+      assetMap,
+      basePath,
+      homePath
+    ),
+  }));
+
+  const processedStandaloneHomePage = standaloneHomePage
+    ? {
+        ...standaloneHomePage,
+        title: standaloneHomePage.frontmatter.title || standaloneHomePage.slug,
+        processedBody: preprocessMarkdown(
+          standaloneHomePage.body,
+          standaloneHomePage.relativePath,
+          index,
+          pagesByPath,
+          assetMap,
+          basePath,
+          homePath
+        ),
+      }
+    : null;
 
   pages.sort((a, b) => {
     const orderA = a.frontmatter.order ?? 999;
@@ -260,10 +442,10 @@ function scanPages(config) {
     return dateB - dateA;
   });
 
-  const homePath = config.home?.replace(/\\/g, '/');
-  const homePage = pages.find((p) => p.relativePath === homePath);
+  const homePage =
+    pages.find((p) => p.relativePath === homePath) ?? processedStandaloneHomePage;
 
-  const navSections = (config.navigation || sections).map((name) => ({
+  const navSections = sections.map((name) => ({
     name,
     pages: pages
       .filter((p) => p.section === name)
@@ -271,8 +453,20 @@ function scanPages(config) {
         section: p.section,
         slug: p.slug,
         title: p.title,
-        href: pageHref(p.section, p.slug),
+        href: pageRoute(p, homePath),
       })),
+  }));
+
+  const navigation = normalizeNavigationEntries(config.navigation).map((entry) =>
+    resolveNavigationItem(entry, pagesByPath, homePath)
+  );
+
+  const standaloneRoutes = processedStandalonePages.map((page) => ({
+    relativePath: page.relativePath,
+    segment: path.basename(page.relativePath, '.md'),
+    title: page.title,
+    processedBody: page.processedBody,
+    href: pageRoute(page, homePath),
   }));
 
   return {
@@ -281,13 +475,18 @@ function scanPages(config) {
     basePath,
     home: homePage
       ? {
-          section: homePage.section,
-          slug: homePage.slug,
+          relativePath: homePage.relativePath,
           title: homePage.title,
           processedBody: homePage.processedBody,
         }
       : null,
+    navigation,
     sections: navSections,
+    standalonePages: standaloneRoutes,
+    sectionRoutes: [
+      ...sections.map((name) => ({ section: name })),
+      ...standaloneRoutes.map((page) => ({ section: page.segment })),
+    ],
     pages: pages.map(({ relativePath, section, slug, title, frontmatter, processedBody }) => ({
       relativePath,
       section,
@@ -295,7 +494,7 @@ function scanPages(config) {
       title,
       frontmatter,
       processedBody,
-      href: pageHref(section, slug),
+      href: pageRoute({ relativePath, section, slug }, homePath),
     })),
     assets: assetMap,
     authorAvatar:

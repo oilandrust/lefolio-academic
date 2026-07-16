@@ -17,15 +17,11 @@ interface NavbarProps {
 
 export default function Navbar({ manifest }: NavbarProps) {
   const pathname = usePathname();
-  const { sections } = manifest;
   const homeHref = '/';
 
   const navItems = [
     { label: 'Home', href: homeHref },
-    ...sections.map((section) => ({
-      label: section.name,
-      href: `/${encodeURIComponent(section.name)}/`,
-    })),
+    ...manifest.navigation,
   ];
 
   return (
@@ -35,7 +31,7 @@ export default function Navbar({ manifest }: NavbarProps) {
           const active = isActive(pathname, item.href);
           return (
             <Link
-              key={item.href}
+              key={`${item.label}-${item.href}`}
               href={item.href}
               className={active ? 'nav-link nav-link-active' : 'nav-link'}
             >

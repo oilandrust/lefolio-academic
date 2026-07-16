@@ -23,3 +23,8 @@ export function getSections() {
   const manifest = loadManifest();
   return manifest.sections.map((s) => s.name);
 }
+
+export function getSectionRoutes() {
+  const manifest = loadManifest();
+  return manifest.sectionRoutes;
+}

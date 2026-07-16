@@ -9,3 +9,17 @@ My name is Olivier, and I'm a Software Engineer with experience in Academia. I w
 I worked at several companies in C++, focusing on UI and Game Engine Technologies, notably with Massive Entertainment, a Ubisoft Studio, and Abstract, on the RSX engine.
 
 Nowadays, I am focused on making the academic publishing site feel effortless and smooth, to free the creativity of academics so that they can show their best work and focus on their craft.
+
+You can edit everything in the `Content/` folder using Markdown and Obsidian-style links like.
+
+## Quick demo
+
+Inline math: $E = mc^2$
+
+Block math:
+
+$$
+\int_0^\infty e^{-x^2}\, dx = \frac{\sqrt{\pi}}{2}
+$$
+
+See also [[BRDF]] in Publications.

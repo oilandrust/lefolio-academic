@@ -1,8 +1,9 @@
 import Link from 'next/link';
-import { loadManifest, getSections } from '@/lib/content/load-manifest';
+import MarkdownRenderer from '@/components/MarkdownRenderer';
+import { loadManifest, getSectionRoutes } from '@/lib/content/load-manifest';
 
 export function generateStaticParams() {
-  return getSections().map((section) => ({ section }));
+  return getSectionRoutes();
 }
 
 export default async function SectionIndexPage({
@@ -12,6 +13,19 @@ export default async function SectionIndexPage({
 }) {
   const { section: sectionName } = await params;
   const manifest = loadManifest();
+
+  const standalonePage = manifest.standalonePages.find(
+    (page) => page.segment === sectionName
+  );
+  if (standalonePage) {
+    return (
+      <article>
+        <h1 className="mb-6 text-3xl font-bold text-slate-900">{standalonePage.title}</h1>
+        <MarkdownRenderer content={standalonePage.processedBody} />
+      </article>
+    );
+  }
+
   const section = manifest.sections.find((s) => s.name === sectionName);
 
   if (!section) {

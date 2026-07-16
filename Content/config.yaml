@@ -4,7 +4,7 @@ site:
   url: "https://oilandrust.github.io/lefolio-academic"
   basePath: "/lefolio-academic"
 
-home: "Pages/about.md"
+home: "About.md"
 
 author:
   name: "Olivier Rouiller"
@@ -23,3 +23,4 @@ navigation:
   - Projects
   - Publications
   - CV
+  - Guide: "Pages/Guide.md"
