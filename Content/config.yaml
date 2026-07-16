@@ -2,7 +2,7 @@ site:
   title: "Olivier Rouiller"
   description: "Software Engineer with experience in Academia, I help academics set up beautiful, easy-to-edit websites to showcase their work."
   url: "https://oilandrust.github.io/lefolio-academic"
-  basePath: "/lefolio-academic"
+  basePath: "/"
 
 home: "Pages/about.md"
 
