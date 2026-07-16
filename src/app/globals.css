@@ -1,0 +1,55 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+
+:root {
+  --primary: #2563eb;
+  --sidebar-width: 280px;
+}
+
+body {
+  @apply bg-white text-slate-800 antialiased;
+}
+
+.prose-academic {
+  @apply prose prose-slate max-w-none prose-headings:scroll-mt-20 prose-a:text-blue-600;
+}
+
+.prose-academic img {
+  @apply rounded-lg shadow-md;
+}
+
+.content-figure {
+  @apply my-6;
+}
+
+.content-figure img {
+  @apply block h-auto w-full;
+}
+
+.content-figure.align-center {
+  @apply mx-auto;
+}
+
+.content-figure.align-left:not(.wrap) {
+  @apply mr-auto ml-0;
+}
+
+.content-figure.align-right:not(.wrap) {
+  @apply ml-auto mr-0;
+}
+
+.content-figure.wrap.align-left {
+  @apply float-left mt-0 mr-6 mb-4 ml-0;
+}
+
+.content-figure.wrap.align-right {
+  @apply float-right mt-0 mr-0 mb-4 ml-6;
+}
+
+.nav-link {
+  @apply rounded-md px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900;
+}
+
+.nav-link-active {
+  @apply bg-blue-50 font-medium text-blue-700;
+}

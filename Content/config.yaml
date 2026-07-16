@@ -1,0 +1,25 @@
+site:
+  title: "Olivier Rouiller"
+  description: "Software Engineer with experience in Academia, I help academics set up beautiful, easy-to-edit websites to showcase their work."
+  url: "https://oilandrust.github.io/lefolio-academic"
+  basePath: "/lefolio-academic"
+
+home: "Pages/about.md"
+
+author:
+  name: "Olivier Rouiller"
+  pronouns: "he/him"
+  bio: "Software Engineer with experience in Academia, I help academics set up beautiful, easy-to-edit websites to showcase their work."
+  avatar: "Assets/profile.jpg"
+  location: "Strasbourg, France"
+  employer: "Self-employed"
+  links:
+    email: "o.rouiller@gmail.com"
+    orcid: "https://orcid.org/0009-0004-0932-4228"
+    googlescholar: "https://scholar.google.com/citations?user=NYMlwVkAAAAJ&hl=en"
+    github: "https://github.com/oilandrust"
+
+navigation:
+  - Projects
+  - Publications
+  - CV
