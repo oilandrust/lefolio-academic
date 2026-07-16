@@ -17,14 +17,14 @@ interface NavbarProps {
 
 export default function Navbar({ manifest }: NavbarProps) {
   const pathname = usePathname();
-  const { sections, basePath } = manifest;
-  const homeHref = `${basePath}/` || '/';
+  const { sections } = manifest;
+  const homeHref = '/';
 
   const navItems = [
     { label: 'Home', href: homeHref },
     ...sections.map((section) => ({
       label: section.name,
-      href: `${basePath}/${encodeURIComponent(section.name)}/`,
+      href: `/${encodeURIComponent(section.name)}/`,
     })),
   ];
 

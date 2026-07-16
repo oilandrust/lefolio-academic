@@ -23,8 +23,8 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ manifest }: SidebarProps) {
-  const { config, authorAvatar, basePath } = manifest;
-  const homeHref = `${basePath}/` || '/';
+  const { config, authorAvatar } = manifest;
+  const homeHref = '/';
   const { author, site } = config;
 
   return (

@@ -27,6 +27,10 @@ function encodeSlug(slug) {
   return slug.split('/').map(encodeURIComponent).join('/');
 }
 
+function pageHref(section, slug) {
+  return `/${encodeURIComponent(section)}/${encodeSlug(slug)}/`;
+}
+
 function buildVaultIndex(rootDir) {
   const index = new Map();
 
@@ -262,7 +266,7 @@ function scanPages(config) {
         section: p.section,
         slug: p.slug,
         title: p.title,
-        href: `${basePath}/${encodeURIComponent(p.section)}/${encodeSlug(p.slug)}/`,
+        href: pageHref(p.section, p.slug),
       })),
   }));
 
@@ -286,7 +290,7 @@ function scanPages(config) {
       title,
       frontmatter,
       processedBody,
-      href: `${basePath}/${encodeURIComponent(section)}/${encodeSlug(slug)}/`,
+      href: pageHref(section, slug),
     })),
     assets: assetMap,
     authorAvatar:
