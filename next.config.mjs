@@ -6,10 +6,15 @@ import { fileURLToPath } from 'url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const configPath = path.join(__dirname, 'Content', 'config.yaml');
 
+function normalizeBasePath(value) {
+  if (!value || value === '/') return '';
+  return String(value).replace(/\/$/, '');
+}
+
 function readBasePath() {
   try {
     const config = yaml.load(fs.readFileSync(configPath, 'utf8'));
-    return (config.site?.basePath || '').replace(/\/$/, '');
+    return normalizeBasePath(config.site?.basePath);
   } catch {
     return '';
   }

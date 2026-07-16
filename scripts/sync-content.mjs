@@ -65,6 +65,11 @@ function parseLinkTarget(value) {
 
 const ALIGN_VALUES = new Set(['left', 'right', 'center']);
 
+function normalizeBasePath(value) {
+  if (!value || value === '/') return '';
+  return String(value).replace(/\/$/, '');
+}
+
 function parseEmbedTarget(value) {
   const parts = value.split('|').map((s) => s.trim()).filter(Boolean);
   const target = parts[0];
@@ -227,7 +232,7 @@ function scanPages(config) {
   const pagesByPath = new Map(rawPages.map((p) => [p.relativePath, p]));
   const index = buildVaultIndex(CONTENT_DIR);
   const assetMap = {};
-  const basePath = (config.site?.basePath || '').replace(/\/$/, '');
+  const basePath = normalizeBasePath(config.site?.basePath);
 
   if (config.author?.avatar) {
     copyAsset(config.author.avatar.replace(/\\/g, '/'), assetMap);
