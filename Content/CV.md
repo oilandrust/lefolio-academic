@@ -1,10 +1,6 @@
 ---
 title: CV
 ---
-Olivier Rouiller
-08/07/1987
-o.rouiller@gmail.com
-06 62 91 32 03
 ### Education
 -------
 - **2024 - 2026: Licence de Psychologie à l'Université de Strasbourg.** J'ai acquis une licence de psychologie en reprise d'études. Licence validée avec mention assez bien, avec un rang de 46/144.

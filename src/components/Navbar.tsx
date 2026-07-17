@@ -29,7 +29,7 @@ export default function Navbar({
 
   return (
     <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/95 backdrop-blur">
-      <div className="lg:grid lg:grid-cols-[var(--sidebar-width)_1fr]">
+      <div className="lg:grid lg:grid-cols-[var(--sidebar-width)_minmax(0,1fr)_var(--sidebar-width)]">
         <div className="flex items-center justify-between gap-3 px-4 sm:px-6 lg:justify-center lg:border-r lg:border-slate-200 lg:px-4">
           <Link
             href={homeHref}
@@ -67,6 +67,7 @@ export default function Navbar({
             );
           })}
         </nav>
+        <div className="hidden lg:block" aria-hidden />
       </div>
     </header>
   );

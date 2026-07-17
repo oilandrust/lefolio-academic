@@ -21,7 +21,7 @@ export default function SiteShell({ manifest, children }: SiteShellProps) {
         onToggleMobileProfile={() => setOpen((v) => !v)}
       />
 
-      <div className="lg:grid lg:grid-cols-[var(--sidebar-width)_1fr]">
+      <div className="lg:grid lg:grid-cols-[var(--sidebar-width)_minmax(0,1fr)_var(--sidebar-width)]">
         <div
           className={`fixed inset-y-0 left-0 z-40 w-[var(--sidebar-width)] transform bg-slate-50 transition-transform lg:static lg:translate-x-0 ${
             open ? 'translate-x-0 shadow-xl' : '-translate-x-full'
@@ -40,7 +40,8 @@ export default function SiteShell({ manifest, children }: SiteShellProps) {
           />
         )}
 
-        <main className="min-w-0 flex-1 px-6 py-8 lg:px-10">{children}</main>
+        <main className="min-w-0 px-6 py-8 lg:px-10">{children}</main>
+        <div className="hidden lg:block" aria-hidden />
       </div>
     </div>
   );
