@@ -85,6 +85,36 @@ Content/
 
 Each folder under `Content/` (except `Assets/`) is a **section**. Each `.md` file becomes a page.
 
+### Section index note
+
+If a section folder contains a note with the **same name** as the folder (e.g. `Publications/Publications.md`), that note is **not** listed as a page. Instead:
+
+- Its body is shown **above** the section listing
+- Its frontmatter configures the listing
+
+```yaml
+---
+title: Publications
+sort: date          # date | order | title
+display: publication_thumbnail   # list | publication_thumbnail
+---
+```
+
+For `publication_thumbnail`, each page can set:
+
+```yaml
+---
+title: Paper title
+authors:
+  - A. Author
+  - B. Coauthor
+venue: Journal or proceedings, 2024
+thumbnail: preview.png
+---
+```
+
+`thumbnail` can be a filename, relative path, or `[[wikilink]]` to an image under `Content/`.
+
 ### Page frontmatter
 
 Optional YAML at the top of any page:

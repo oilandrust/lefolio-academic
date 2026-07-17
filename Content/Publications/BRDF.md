@@ -1,39 +1,24 @@
 ---
-title: 3D-printing spatially varying BRDFs
+title: 3D-Printing Spatially Varying BRDFs
 date: 2013-09-23
-venue: IEEE computer graphics and applications
-doi: 10.1000/example
+venue: IEEE Computer Graphics and Applications, vol. 33, no. 6, 2013
+doi: 10.1109/MCG.2013.82
+pages: 48-57
 order: 1
 permalink: brdf
+authors:
+  - Olivier Rouiller
+  - Bernd Bickel
+  - Jan Kautz
+  - Wojciech Matusik
+  - Marc Alexa
+thumbnail: domes.png
 ---
-I did 2 years as a PhD Student at TU Berlin, and I worked on this project, which was published in Computer Graphics and Applications.
+
+Olivier Rouiller, Bernd Bickel, Jan Kautz, Wojciech Matusik, and Marc Alexa, “3D-Printing Spatially Varying BRDFs,” _IEEE Computer Graphics and Applications_, vol. 33, no. 6, pp. 48–57, Sep. 2013. doi: [10.1109/MCG.2013.82](https://doi.org/10.1109/MCG.2013.82).
+
 ![[normals.png|400|center]]
 
-## Workflow diagram
+A new method fabricates custom surface reflectance and spatially varying bidirectional reflectance distribution functions (svBRDFs). Researchers optimize a microgeometry for a range of normal distribution functions and simulate the resulting surface’s effective reflectance. Using the simulation’s results, they reproduce an input svBRDF’s appearance by distributing the microgeometry on the printed material’s surface. This method lets people print svBRDFs on planar samples with current 3D printing technology, even with a limited set of printing materials. It extends naturally to printing svBRDFs on arbitrary shapes.
 
-```mermaid
-flowchart LR
-  RawData[Raw data] --> Clean[Cleaning]
-  Clean --> Explore[Exploration]
-  Explore --> Model[Modeling]
-  Model --> Report[Report]
-```
 
-## Sample plot
-
-```plotly
-{
-  "data": [{
-    "x": [1, 2, 3, 4],
-    "y": [10, 15, 13, 17],
-    "type": "scatter",
-    "mode": "lines+markers",
-    "name": "Enrollment"
-  }],
-  "layout": {
-    "title": "Weekly enrollment",
-    "xaxis": { "title": "Week" },
-    "yaxis": { "title": "Students" }
-  }
-}
-```

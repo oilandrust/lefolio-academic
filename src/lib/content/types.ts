@@ -32,6 +32,14 @@ export interface PageFrontmatter {
   date?: string;
   order?: number;
   permalink?: string;
+  authors?: string | string[];
+  venue?: string;
+  journal?: string;
+  proceedings?: string;
+  thumbnail?: string;
+  display?: string;
+  sort?: string;
+  preview?: string;
   [key: string]: unknown;
 }
 
@@ -51,14 +59,31 @@ export interface NavItem {
   type: 'section' | 'page';
 }
 
+export interface SectionListItem {
+  section: string;
+  slug: string;
+  title: string;
+  href: string;
+  date?: string | null;
+  authors: string[];
+  venue?: string | null;
+  thumbnail?: string | null;
+  frontmatter?: PageFrontmatter;
+}
+
+export interface SectionIndexNote {
+  relativePath: string;
+  title: string;
+  frontmatter: PageFrontmatter;
+  processedBody: string;
+}
+
 export interface NavSection {
   name: string;
-  pages: Array<{
-    section: string;
-    slug: string;
-    title: string;
-    href: string;
-  }>;
+  display: string;
+  preview?: string | null;
+  index: SectionIndexNote | null;
+  pages: SectionListItem[];
 }
 
 export interface StandalonePage {

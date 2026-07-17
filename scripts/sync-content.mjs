@@ -44,7 +44,67 @@ function pageRoute(page, homePath) {
   return pageHref(page.section, page.slug);
 }
 
+function isSectionIndexFile(section, relativePath) {
+  return path.basename(relativePath, '.md') === section;
+}
+
+function normalizeAuthors(authors) {
+  if (!authors) return [];
+  if (Array.isArray(authors)) {
+    return authors.map((a) => String(a).trim()).filter(Boolean);
+  }
+  return String(authors)
+    .split(/,|;|\band\b/i)
+    .map((a) => a.trim())
+    .filter(Boolean);
+}
+
+function resolveThumbnail(value, sourceFile, vaultIndex, assetMap, basePath) {
+  if (!value) return null;
+
+  let target = String(value).trim();
+  const wiki = target.match(/^\[\[([^\]]+)\]\]$/);
+  if (wiki) {
+    target = wiki[1].split('|')[0].trim();
+  }
+  target = target.replace(/^.*?Content\//, '');
+
+  const resolved = resolveVaultPath(target, sourceFile, vaultIndex);
+  if (!resolved || !isImagePath(resolved)) return null;
+
+  const publicPath = copyAsset(resolved, assetMap);
+  return publicPath ? `${basePath}${publicPath}` : null;
+}
+
+function sortPagesForSection(pages, sortMode) {
+  const copy = [...pages];
+  if (sortMode === 'title') {
+    copy.sort((a, b) => a.title.localeCompare(b.title));
+  } else if (sortMode === 'order') {
+    copy.sort((a, b) => {
+      const orderA = a.frontmatter.order ?? 999;
+      const orderB = b.frontmatter.order ?? 999;
+      if (orderA !== orderB) return orderA - orderB;
+      return a.title.localeCompare(b.title);
+    });
+  } else {
+    // date (default)
+    copy.sort((a, b) => {
+      const dateA = a.frontmatter.date ? new Date(a.frontmatter.date).getTime() : 0;
+      const dateB = b.frontmatter.date ? new Date(b.frontmatter.date).getTime() : 0;
+      if (dateA !== dateB) return dateB - dateA;
+      const orderA = a.frontmatter.order ?? 999;
+      const orderB = b.frontmatter.order ?? 999;
+      return orderA - orderB;
+    });
+  }
+  return copy;
+}
+
 function contentHref(page, basePath, homePath) {
+  if (page.isSectionIndex && page.section) {
+    return `${basePath}/${encodeURIComponent(page.section)}/`;
+  }
   const route = pageRoute(page, homePath);
   return route === '/' ? `${basePath}/` : `${basePath}${route}`;
 }
@@ -341,12 +401,21 @@ function scanPages(config) {
     .filter((d) => !SKIP_DIRS.has(d) && !d.startsWith('.'));
 
   const rawPages = [];
+  const sectionIndexNotes = new Map();
+
   for (const section of sections) {
     const files = fg.sync('**/*.md', { cwd: path.join(CONTENT_DIR, section) });
     for (const file of files) {
       const relativePath = `${section}/${file}`.replace(/\\/g, '/');
       const fullPath = path.join(CONTENT_DIR, relativePath);
-      rawPages.push(parseMarkdownFile(relativePath, fullPath, section));
+      const parsed = parseMarkdownFile(relativePath, fullPath, section);
+
+      if (isSectionIndexFile(section, relativePath)) {
+        sectionIndexNotes.set(section, { ...parsed, isSectionIndex: true });
+        continue;
+      }
+
+      rawPages.push(parsed);
     }
   }
 
@@ -377,6 +446,7 @@ function scanPages(config) {
 
   const allContentPages = [
     ...rawPages,
+    ...sectionIndexNotes.values(),
     ...standalonePages,
     ...(standaloneHomePage ? [standaloneHomePage] : []),
   ];
@@ -402,6 +472,23 @@ function scanPages(config) {
       homePath
     ),
   }));
+
+  const processedSectionIndexes = new Map();
+  for (const [section, note] of sectionIndexNotes.entries()) {
+    processedSectionIndexes.set(section, {
+      ...note,
+      title: note.frontmatter.title || section,
+      processedBody: preprocessMarkdown(
+        note.body,
+        note.relativePath,
+        index,
+        pagesByPath,
+        assetMap,
+        basePath,
+        homePath
+      ),
+    });
+  }
 
   const processedStandalonePages = standalonePages.map((page) => ({
     ...page,
@@ -445,17 +532,49 @@ function scanPages(config) {
   const homePage =
     pages.find((p) => p.relativePath === homePath) ?? processedStandaloneHomePage;
 
-  const navSections = sections.map((name) => ({
-    name,
-    pages: pages
-      .filter((p) => p.section === name)
-      .map((p) => ({
+  const navSections = sections.map((name) => {
+    const indexNote = processedSectionIndexes.get(name) || null;
+    const sortMode = indexNote?.frontmatter?.sort || 'date';
+    const sectionPages = sortPagesForSection(
+      pages.filter((p) => p.section === name),
+      sortMode
+    );
+
+    return {
+      name,
+      display: indexNote?.frontmatter?.display || 'list',
+      preview: indexNote?.frontmatter?.preview || null,
+      index: indexNote
+        ? {
+            relativePath: indexNote.relativePath,
+            title: indexNote.title,
+            frontmatter: indexNote.frontmatter,
+            processedBody: indexNote.processedBody,
+          }
+        : null,
+      pages: sectionPages.map((p) => ({
         section: p.section,
         slug: p.slug,
         title: p.title,
         href: pageRoute(p, homePath),
+        date: p.frontmatter.date || null,
+        authors: normalizeAuthors(p.frontmatter.authors),
+        venue:
+          p.frontmatter.venue ||
+          p.frontmatter.journal ||
+          p.frontmatter.proceedings ||
+          null,
+        thumbnail: resolveThumbnail(
+          p.frontmatter.thumbnail,
+          p.relativePath,
+          index,
+          assetMap,
+          basePath
+        ),
+        frontmatter: p.frontmatter,
       })),
-  }));
+    };
+  });
 
   const navigation = normalizeNavigationEntries(config.navigation).map((entry) =>
     resolveNavigationItem(entry, pagesByPath, homePath)

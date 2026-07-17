@@ -1,5 +1,5 @@
-import Link from 'next/link';
 import MarkdownRenderer from '@/components/MarkdownRenderer';
+import SectionPageList from '@/components/SectionPageList';
 import { loadManifest, getSectionRoutes } from '@/lib/content/load-manifest';
 
 export function generateStaticParams() {
@@ -32,19 +32,28 @@ export default async function SectionIndexPage({
     return <p className="text-slate-600">Section not found.</p>;
   }
 
+  const title = section.index?.title || section.name;
+  const showDefaultIntro = !section.index?.processedBody;
+
   return (
     <article>
-      <h1 className="mb-2 text-3xl font-bold text-slate-900">{section.name}</h1>
-      <p className="mb-8 text-slate-600">Pages in this section.</p>
-      <ul className="space-y-3">
-        {section.pages.map((page) => (
-          <li key={page.href}>
-            <Link href={page.href} className="text-lg text-blue-600 hover:underline">
-              {page.title}
-            </Link>
-          </li>
-        ))}
-      </ul>
+      <h1 className="mb-2 text-3xl font-bold text-slate-900">{title}</h1>
+
+      {section.index?.processedBody ? (
+        <div className="mb-2">
+          <MarkdownRenderer content={section.index.processedBody} />
+        </div>
+      ) : null}
+
+      {showDefaultIntro ? (
+        <p className="mb-8 text-slate-600">Pages in this section.</p>
+      ) : null}
+
+      <SectionPageList
+        display={section.display}
+        pages={section.pages}
+        highlightAuthor={manifest.config.author?.name}
+      />
     </article>
   );
 }
