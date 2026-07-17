@@ -7,6 +7,7 @@ tech: React, Next, NodeJS
 image_layout: featured
 github_url: https://github.com/oilandrust/portfolio
 live_url: https://www.lefolio.fr/
+published: "false"
 ---
 I built this portfolio and started experimenting with tools for building portfolios.
 I started building a static website built with Vite and React, and deployed to GitHub Pages. This is the page you are looking at.

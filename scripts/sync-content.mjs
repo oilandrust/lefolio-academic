@@ -48,6 +48,18 @@ function isSectionIndexFile(section, relativePath) {
   return path.basename(relativePath, '.md') === section;
 }
 
+/** Pages default to published; `published: false` (or "false") excludes them. */
+function isPublished(frontmatter) {
+  if (!frontmatter || frontmatter.published === undefined || frontmatter.published === null) {
+    return true;
+  }
+  const value = frontmatter.published;
+  if (typeof value === 'boolean') return value;
+  if (typeof value === 'number') return value !== 0;
+  const normalized = String(value).trim().toLowerCase();
+  return !['false', '0', 'no', 'off'].includes(normalized);
+}
+
 function normalizeAuthors(authors) {
   if (!authors) return [];
   if (Array.isArray(authors)) {
@@ -462,6 +474,10 @@ function scanPages(config) {
       const fullPath = path.join(CONTENT_DIR, relativePath);
       const parsed = parseMarkdownFile(relativePath, fullPath, section);
 
+      if (!isPublished(parsed.frontmatter)) {
+        continue;
+      }
+
       if (isSectionIndexFile(section, relativePath)) {
         sectionIndexNotes.set(section, { ...parsed, isSectionIndex: true });
         continue;
@@ -480,7 +496,9 @@ function scanPages(config) {
     if (rawPages.some((p) => p.relativePath === relativePath)) continue;
 
     const fullPath = path.join(CONTENT_DIR, relativePath);
-    standalonePages.push(parseMarkdownFile(relativePath, fullPath, null));
+    const parsed = parseMarkdownFile(relativePath, fullPath, null);
+    if (!isPublished(parsed.frontmatter)) continue;
+    standalonePages.push(parsed);
   }
 
   let standaloneHomePage = null;
@@ -492,7 +510,10 @@ function scanPages(config) {
   ) {
     const homeFullPath = path.join(CONTENT_DIR, homePath);
     if (fs.existsSync(homeFullPath)) {
-      standaloneHomePage = parseMarkdownFile(homePath, homeFullPath, null);
+      const parsed = parseMarkdownFile(homePath, homeFullPath, null);
+      if (isPublished(parsed.frontmatter)) {
+        standaloneHomePage = parsed;
+      }
     }
   }
 

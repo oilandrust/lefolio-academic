@@ -6,6 +6,7 @@ tech: TypeScript, GitHub API
 image_layout: featured
 live_url: https://oilandrust.github.io/githubpublish-wiki/
 github_url: https://github.com/oilandrust/obsidian-github-publish
+published: "false"
 ---
 
 AI coding agents have considerably lowered the bar for building small products, tools, and plugins that make life a little better. This plugin is an example.

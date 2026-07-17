@@ -1,13 +1,14 @@
 ---
-title: Academic Sites
-subtitle: Helping academics setup beautiful easy-to-use websites
+title: LeFolio
+subtitle: A suit of tools and templates to publish beautiful and easy-to-edit sites
 start_date: 2026-07-06
 tech: jekyll, web
 image_layout: featured
 live_url: https://oilandrust.github.io/githubpublish-wiki/
 github_url:
+thumbnail: lefolio_logo.png
 ---
-![[before_after.png]]
+![[lefolio-academic/Content/Projects/LeFolio/before_after.png]]
 
 As I continue my exploration of building portfolios and publishing sites built on Markdown, I am focusing my efforts on academics, including professors, postdocs, and PhD students.
 

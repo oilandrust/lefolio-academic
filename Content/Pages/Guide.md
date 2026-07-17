@@ -139,6 +139,7 @@ title: "Page title"
 date: 2025-09-01
 order: 1
 permalink: custom-slug
+published: false
 ---
 ```
 
@@ -148,6 +149,7 @@ permalink: custom-slug
 | `date` | Sort key for listings |
 | `order` | Manual sort order (lower = first) |
 | `permalink` | URL slug override |
+| `published` | Set to `false` to keep the note in the vault but omit it from the site |
 
 A file `Publications/My Paper.md` with `permalink: my-paper` is served at `/Publications/my-paper/`.
 

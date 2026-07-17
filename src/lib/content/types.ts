@@ -40,6 +40,7 @@ export interface PageFrontmatter {
   display?: string;
   sort?: string;
   preview?: string;
+  published?: boolean | string;
   [key: string]: unknown;
 }
 
