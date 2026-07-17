@@ -5,6 +5,7 @@ permalink: guide
 ---
 This guide explains how to configure and write content for your LeFolio Academic site. Everything lives in the `Content/` folder.
 
+[[Unlisted]]
 ## Configuration
 
 Edit `Content/config.yaml` to control site metadata, the homepage, author profile, and navigation.

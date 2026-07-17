@@ -7,7 +7,7 @@ order: 1
 permalink: brdf
 ---
 I did 2 years as a PhD Student at TU Berlin, and I worked on this project, which was published in Computer Graphics and Applications.
-
+![[normals.png|400|center]]
 
 ## Workflow diagram
 
