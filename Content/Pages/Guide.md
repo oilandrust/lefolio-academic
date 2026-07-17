@@ -96,7 +96,7 @@ If a section folder contains a note with the **same name** as the folder (e.g. `
 ---
 title: Publications
 sort: date          # date | order | title
-display: publication_thumbnail   # list | publication_thumbnail
+display: publication_thumbnail   # list | publication_thumbnail | grid
 ---
 ```
 
@@ -114,6 +114,20 @@ thumbnail: preview.png
 ```
 
 `thumbnail` can be a filename, relative path, or `[[wikilink]]` to an image under `Content/`.
+
+For `grid` (useful for projects), each card shows thumbnail, title, and subtitle:
+
+```yaml
+---
+title: Project title
+subtitle: Short tagline
+start_date: 2025-08-01
+thumbnail: preview.png
+---
+```
+
+If `thumbnail` is omitted, the first image embed in the note is used, otherwise the first image in the same folder (preferring filenames that start with `0_`).
+`sort: date` also honors `start_date` / `end_date`.
 
 ### Page frontmatter
 

@@ -63,6 +63,7 @@ export interface SectionListItem {
   section: string;
   slug: string;
   title: string;
+  subtitle?: string | null;
   href: string;
   date?: string | null;
   authors: string[];

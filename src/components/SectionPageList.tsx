@@ -84,6 +84,39 @@ function PublicationThumbnailList({
   );
 }
 
+function ProjectGrid({ pages }: { pages: SectionListItem[] }) {
+  return (
+    <ul className="mt-8 grid gap-6 sm:grid-cols-2">
+      {pages.map((page) => (
+        <li key={page.href}>
+          <Link href={page.href} className="group block no-underline">
+            <div className="aspect-[16/10] overflow-hidden rounded-lg bg-slate-100">
+              {page.thumbnail ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={page.thumbnail}
+                  alt=""
+                  className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+                />
+              ) : (
+                <div className="flex h-full w-full items-center justify-center text-sm text-slate-400">
+                  No image
+                </div>
+              )}
+            </div>
+            <h2 className="mt-3 text-lg font-semibold leading-snug text-slate-900 group-hover:text-blue-700">
+              {page.title}
+            </h2>
+            {page.subtitle ? (
+              <p className="mt-1 text-sm text-slate-600">{page.subtitle}</p>
+            ) : null}
+          </Link>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 function SimpleList({ pages }: { pages: SectionListItem[] }) {
   return (
     <ul className="mt-8 space-y-3">
@@ -105,6 +138,10 @@ export default function SectionPageList({
 }: SectionPageListProps) {
   if (pages.length === 0) {
     return <p className="mt-8 text-slate-600">No pages in this section yet.</p>;
+  }
+
+  if (display === 'grid') {
+    return <ProjectGrid pages={pages} />;
   }
 
   if (display === 'publication_thumbnail' || display === 'thumbnail') {

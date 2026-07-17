@@ -59,6 +59,10 @@ function normalizeAuthors(authors) {
     .filter(Boolean);
 }
 
+function isImagePath(relativePath) {
+  return IMAGE_EXT.has(path.extname(relativePath).toLowerCase());
+}
+
 function resolveThumbnail(value, sourceFile, vaultIndex, assetMap, basePath) {
   if (!value) return null;
 
@@ -76,6 +80,58 @@ function resolveThumbnail(value, sourceFile, vaultIndex, assetMap, basePath) {
   return publicPath ? `${basePath}${publicPath}` : null;
 }
 
+function firstEmbedImage(body, sourceFile, vaultIndex, assetMap, basePath) {
+  if (!body) return null;
+  const matches = body.matchAll(/!\[\[([^\]]+)\]\]/g);
+  for (const match of matches) {
+    const target = match[1].split('|')[0].trim();
+    const resolved = resolveVaultPath(target, sourceFile, vaultIndex);
+    if (resolved && isImagePath(resolved)) {
+      const publicPath = copyAsset(resolved, assetMap);
+      if (publicPath) return `${basePath}${publicPath}`;
+    }
+  }
+  return null;
+}
+
+function firstSiblingImage(sourceFile, assetMap, basePath) {
+  const dir = path.dirname(path.join(CONTENT_DIR, sourceFile));
+  if (!fs.existsSync(dir) || !fs.statSync(dir).isDirectory()) return null;
+
+  const files = fs
+    .readdirSync(dir)
+    .filter((name) => IMAGE_EXT.has(path.extname(name).toLowerCase()))
+    .sort((a, b) => {
+      const aFeatured = a.startsWith('0_') ? 0 : 1;
+      const bFeatured = b.startsWith('0_') ? 0 : 1;
+      if (aFeatured !== bFeatured) return aFeatured - bFeatured;
+      return a.localeCompare(b);
+    });
+
+  if (files.length === 0) return null;
+
+  const relative = path.join(path.dirname(sourceFile), files[0]).replace(/\\/g, '/');
+  const publicPath = copyAsset(relative, assetMap);
+  return publicPath ? `${basePath}${publicPath}` : null;
+}
+
+function resolvePageThumbnail(page, vaultIndex, assetMap, basePath) {
+  return (
+    resolveThumbnail(page.frontmatter.thumbnail, page.relativePath, vaultIndex, assetMap, basePath) ||
+    firstEmbedImage(page.body, page.relativePath, vaultIndex, assetMap, basePath) ||
+    firstSiblingImage(page.relativePath, assetMap, basePath)
+  );
+}
+
+function pageSortDate(page) {
+  const raw =
+    page.frontmatter.date ||
+    page.frontmatter.start_date ||
+    page.frontmatter.end_date ||
+    null;
+  return raw ? new Date(raw).getTime() : 0;
+}
+
 function sortPagesForSection(pages, sortMode) {
   const copy = [...pages];
   if (sortMode === 'title') {
@@ -88,10 +144,10 @@ function sortPagesForSection(pages, sortMode) {
       return a.title.localeCompare(b.title);
     });
   } else {
-    // date (default)
+    // date (default) — also honors start_date / end_date
     copy.sort((a, b) => {
-      const dateA = a.frontmatter.date ? new Date(a.frontmatter.date).getTime() : 0;
-      const dateB = b.frontmatter.date ? new Date(b.frontmatter.date).getTime() : 0;
+      const dateA = pageSortDate(a);
+      const dateB = pageSortDate(b);
       if (dateA !== dateB) return dateB - dateA;
       const orderA = a.frontmatter.order ?? 999;
       const orderB = b.frontmatter.order ?? 999;
@@ -289,10 +345,6 @@ function resolveVaultPath(target, sourceFile, index) {
     if (fs.existsSync(direct)) return candidate;
   }
   return null;
-}
-
-function isImagePath(filePath) {
-  return IMAGE_EXT.has(path.extname(filePath).toLowerCase());
 }
 
 function copyAsset(relativePath, assetMap) {
@@ -556,21 +608,16 @@ function scanPages(config) {
         section: p.section,
         slug: p.slug,
         title: p.title,
+        subtitle: p.frontmatter.subtitle ? String(p.frontmatter.subtitle) : null,
         href: pageRoute(p, homePath),
-        date: p.frontmatter.date || null,
+        date: p.frontmatter.date || p.frontmatter.start_date || null,
         authors: normalizeAuthors(p.frontmatter.authors),
         venue:
           p.frontmatter.venue ||
           p.frontmatter.journal ||
           p.frontmatter.proceedings ||
           null,
-        thumbnail: resolveThumbnail(
-          p.frontmatter.thumbnail,
-          p.relativePath,
-          index,
-          assetMap,
-          basePath
-        ),
+        thumbnail: resolvePageThumbnail(p, index, assetMap, basePath),
         frontmatter: p.frontmatter,
       })),
     };
