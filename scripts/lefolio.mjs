@@ -6,21 +6,28 @@ import { contentEnv, ENGINE_ROOT } from './resolve-paths.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-function stripContentFlag(args) {
-  const out = [...args];
-  const idx = out.indexOf('--content');
-  if (idx !== -1) {
-    out.splice(idx, 2);
+function contentArgs(args) {
+  const out = [];
+  const contentIdx = args.indexOf('--content');
+  if (contentIdx !== -1 && args[contentIdx + 1]) {
+    out.push('--content', args[contentIdx + 1]);
+  }
+  const vaultIdx = args.indexOf('--vault');
+  if (vaultIdx !== -1 && args[vaultIdx + 1]) {
+    out.push('--vault', args[vaultIdx + 1]);
   }
   return out;
 }
 
-function contentArgs(args) {
-  const idx = args.indexOf('--content');
-  if (idx !== -1 && args[idx + 1]) {
-    return ['--content', args[idx + 1]];
+function stripContentFlag(args) {
+  const out = [...args];
+  for (const flag of ['--content', '--vault']) {
+    const idx = out.indexOf(flag);
+    if (idx !== -1) {
+      out.splice(idx, 2);
+    }
   }
-  return [];
+  return out;
 }
 
 function run(command, args, options = {}) {
@@ -45,7 +52,7 @@ async function main() {
   const contentFlag = contentArgs(rawArgs);
 
   if (!command || command === '--help' || command === '-h') {
-    console.log(`Usage: node scripts/lefolio.mjs <command> [--content <path>]
+    console.log(`Usage: node scripts/lefolio.mjs <command> [--content <path>] [--vault <path>]
 
 Commands:
   sync    Scan content vault and write manifest
@@ -53,11 +60,17 @@ Commands:
   build   Sync and run static export
 
 Environment:
-  LEFOLIO_CONTENT   Path to content vault (default: ./Content)
+  LEFOLIO_CONTENT   Path to site content folder (default: ./Content)
+  LEFOLIO_VAULT     Obsidian vault root for embed/link resolution
+
+Vault root defaults to the nearest ancestor of the content folder that contains
+.obsidian/, otherwise the content folder itself. Override with --vault or
+config.yaml \`vault:\` when needed.
 
 Examples:
   node scripts/lefolio.mjs dev
   node scripts/lefolio.mjs dev --content ~/Documents/MySite
+  node scripts/lefolio.mjs dev --content ./Content --vault ~/Projects/Academic
   LEFOLIO_CONTENT=~/Documents/MySite node scripts/lefolio.mjs build
 `);
     process.exit(command ? 0 : 1);

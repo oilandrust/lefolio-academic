@@ -1,5 +1,8 @@
-import fs from 'fs';
+/**
+ * @deprecated Use copyAssetFromVault from ./resolve-asset instead.
+ */
 import path from 'path';
+import { copyAssetFromVault } from './resolve-asset';
 
 const IMAGE_EXT = new Set(['.png', '.jpg', '.jpeg', '.gif', '.webp', '.svg']);
 
@@ -13,15 +16,5 @@ export function copyAsset(
   relativePath: string,
   assetMap: Record<string, string>
 ): string | null {
-  const source = path.join(contentDir, relativePath);
-  if (!fs.existsSync(source)) return null;
-
-  const publicRelative = relativePath.replace(/\\/g, '/');
-  const dest = path.join(assetsOutDir, publicRelative);
-  fs.mkdirSync(path.dirname(dest), { recursive: true });
-  fs.copyFileSync(source, dest);
-
-  const publicPath = `/content-assets/${publicRelative.split('/').map(encodeURIComponent).join('/')}`;
-  assetMap[relativePath] = publicPath;
-  return publicPath;
+  return copyAssetFromVault(relativePath, contentDir, assetsOutDir, assetMap);
 }

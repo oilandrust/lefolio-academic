@@ -1,16 +1,22 @@
 import chokidar from 'chokidar';
 import { spawn } from 'child_process';
-import { CONTENT_DIR, ENGINE_ROOT, contentEnv } from './resolve-paths.mjs';
+import { CONTENT_DIR, ENGINE_ROOT, contentEnv, vaultArgs } from './resolve-paths.mjs';
 
 let timer = null;
 
-function runSync() {
-  const contentFlag = process.argv.includes('--content')
-    ? ['--content', process.argv[process.argv.indexOf('--content') + 1]]
-    : [];
+function syncArgs() {
+  const args = [];
+  const contentIdx = process.argv.indexOf('--content');
+  if (contentIdx !== -1 && process.argv[contentIdx + 1]) {
+    args.push('--content', process.argv[contentIdx + 1]);
+  }
+  args.push(...vaultArgs());
+  return args;
+}
 
+function runSync() {
   return new Promise((resolve, reject) => {
-    const child = spawn('node', ['scripts/sync-content.mjs', ...contentFlag], {
+    const child = spawn('node', ['scripts/sync-content.mjs', ...syncArgs()], {
       cwd: ENGINE_ROOT,
       stdio: 'inherit',
       env: contentEnv(),

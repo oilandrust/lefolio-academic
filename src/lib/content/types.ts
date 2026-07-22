@@ -33,6 +33,8 @@ export interface ContentConfig {
   navigation: NavigationConfig;
   template?: string;
   theme?: ThemeConfig | string;
+  /** Obsidian vault root for wikilink/embed resolution (relative to content dir, or absolute). */
+  vault?: string;
 }
 
 export interface PageFrontmatter {

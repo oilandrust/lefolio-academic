@@ -10,8 +10,15 @@ import {
   SENTINEL_PATH,
   ASSETS_OUT,
   ENGINE_META_PATH,
+  resolveVaultRoot,
 } from './resolve-paths.mjs';
 import { resolveTemplateId, resolveThemeId } from './resolve-theme.mjs';
+import {
+  buildVaultIndex,
+  resolveAsset,
+  vaultPathToContentPath,
+  copyAssetFromVault,
+} from './resolve-asset.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -78,7 +85,22 @@ function isImagePath(relativePath) {
   return IMAGE_EXT.has(path.extname(relativePath).toLowerCase());
 }
 
-function resolveThumbnail(value, sourceFile, vaultIndex, assetMap, basePath) {
+function makeResolveCtx(vaultRoot, vaultIndex, sourceContentPath) {
+  return {
+    vaultRoot,
+    contentDir: CONTENT_DIR,
+    sourceContentPath,
+    vaultIndex,
+  };
+}
+
+function resolveAndCopyAsset(target, ctx, assetMap) {
+  const resolved = resolveAsset(target, ctx);
+  if (!resolved) return null;
+  return copyAssetFromVault(resolved.vaultPath, ctx.vaultRoot, ASSETS_OUT, assetMap);
+}
+
+function resolveThumbnail(value, ctx, assetMap, basePath) {
   if (!value) return null;
 
   let target = String(value).trim();
@@ -86,30 +108,29 @@ function resolveThumbnail(value, sourceFile, vaultIndex, assetMap, basePath) {
   if (wiki) {
     target = wiki[1].split('|')[0].trim();
   }
-  target = target.replace(/^.*?Content\//, '');
 
-  const resolved = resolveVaultPath(target, sourceFile, vaultIndex);
-  if (!resolved || !isImagePath(resolved)) return null;
+  const resolved = resolveAsset(target, ctx);
+  if (!resolved || !isImagePath(resolved.vaultPath)) return null;
 
-  const publicPath = copyAsset(resolved, assetMap);
+  const publicPath = copyAssetFromVault(resolved.vaultPath, ctx.vaultRoot, ASSETS_OUT, assetMap);
   return publicPath ? `${basePath}${publicPath}` : null;
 }
 
-function firstEmbedImage(body, sourceFile, vaultIndex, assetMap, basePath) {
+function firstEmbedImage(body, ctx, assetMap, basePath) {
   if (!body) return null;
   const matches = body.matchAll(/!\[\[([^\]]+)\]\]/g);
   for (const match of matches) {
     const target = match[1].split('|')[0].trim();
-    const resolved = resolveVaultPath(target, sourceFile, vaultIndex);
-    if (resolved && isImagePath(resolved)) {
-      const publicPath = copyAsset(resolved, assetMap);
+    const resolved = resolveAsset(target, ctx);
+    if (resolved && isImagePath(resolved.vaultPath)) {
+      const publicPath = copyAssetFromVault(resolved.vaultPath, ctx.vaultRoot, ASSETS_OUT, assetMap);
       if (publicPath) return `${basePath}${publicPath}`;
     }
   }
   return null;
 }
 
-function firstSiblingImage(sourceFile, assetMap, basePath) {
+function firstSiblingImage(sourceFile, vaultRoot, assetMap, basePath) {
   const dir = path.dirname(path.join(CONTENT_DIR, sourceFile));
   if (!fs.existsSync(dir) || !fs.statSync(dir).isDirectory()) return null;
 
@@ -125,16 +146,20 @@ function firstSiblingImage(sourceFile, assetMap, basePath) {
 
   if (files.length === 0) return null;
 
-  const relative = path.join(path.dirname(sourceFile), files[0]).replace(/\\/g, '/');
-  const publicPath = copyAsset(relative, assetMap);
+  const contentRelative = path.join(path.dirname(sourceFile), files[0]).replace(/\\/g, '/');
+  const vaultPath = path
+    .relative(vaultRoot, path.join(CONTENT_DIR, contentRelative))
+    .replace(/\\/g, '/');
+  const publicPath = copyAssetFromVault(vaultPath, vaultRoot, ASSETS_OUT, assetMap);
   return publicPath ? `${basePath}${publicPath}` : null;
 }
 
-function resolvePageThumbnail(page, vaultIndex, assetMap, basePath) {
+function resolvePageThumbnail(page, vaultRoot, vaultIndex, assetMap, basePath) {
+  const ctx = makeResolveCtx(vaultRoot, vaultIndex, page.relativePath);
   return (
-    resolveThumbnail(page.frontmatter.thumbnail, page.relativePath, vaultIndex, assetMap, basePath) ||
-    firstEmbedImage(page.body, page.relativePath, vaultIndex, assetMap, basePath) ||
-    firstSiblingImage(page.relativePath, assetMap, basePath)
+    resolveThumbnail(page.frontmatter.thumbnail, ctx, assetMap, basePath) ||
+    firstEmbedImage(page.body, ctx, assetMap, basePath) ||
+    firstSiblingImage(page.relativePath, vaultRoot, assetMap, basePath)
   );
 }
 
@@ -278,32 +303,6 @@ function resolveNavigationItem({ label, path: explicitPath }, pagesByPath, homeP
   };
 }
 
-function buildVaultIndex(rootDir) {
-  const index = new Map();
-
-  function walk(dir) {
-    for (const entry of fs.readdirSync(dir)) {
-      if (entry.startsWith('.')) continue;
-      const fullPath = path.join(dir, entry);
-      const stat = fs.statSync(fullPath);
-      if (stat.isDirectory()) {
-        walk(fullPath);
-      } else {
-        const relativePath = path.relative(rootDir, fullPath).replace(/\\/g, '/');
-        const basename = path.basename(relativePath);
-        const stem = basename.replace(/\.[^.]+$/, '');
-        for (const key of [basename, stem]) {
-          if (!index.has(key)) index.set(key, []);
-          index.get(key).push(relativePath);
-        }
-      }
-    }
-  }
-
-  if (fs.existsSync(rootDir)) walk(rootDir);
-  return index;
-}
-
 function parseLinkTarget(value) {
   const match = value.match(/\[\[([^\]|]+)(?:\|([^\]]+))?\]\]/);
   if (!match) return null;
@@ -339,41 +338,10 @@ function parseEmbedTarget(value) {
   return { target, width, align, wrap };
 }
 
-function resolveVaultPath(target, sourceFile, index) {
-  const normalized = target.replace(/\\/g, '/');
-  if (normalized.includes('/')) {
-    const full = path.join(CONTENT_DIR, normalized);
-    return fs.existsSync(full) ? normalized : null;
-  }
-
-  const withMd = normalized.endsWith('.md') ? normalized : `${normalized}.md`;
-  for (const candidate of [normalized, withMd]) {
-    const matches = index.get(path.basename(candidate)) || index.get(candidate);
-    if (matches?.length === 1) return matches[0];
-    if (matches?.length > 1) {
-      const sourceDir = path.dirname(sourceFile).replace(/\\/g, '/');
-      const sameDir = matches.filter((m) => path.dirname(m) === sourceDir);
-      if (sameDir.length === 1) return sameDir[0];
-      return [...matches].sort((a, b) => a.length - b.length)[0];
-    }
-    const direct = path.join(CONTENT_DIR, candidate);
-    if (fs.existsSync(direct)) return candidate;
-  }
-  return null;
-}
-
-function copyAsset(relativePath, assetMap) {
-  const source = path.join(CONTENT_DIR, relativePath);
-  if (!fs.existsSync(source)) return null;
-
-  const publicRelative = relativePath.replace(/\\/g, '/');
-  const dest = path.join(ASSETS_OUT, publicRelative);
-  fs.mkdirSync(path.dirname(dest), { recursive: true });
-  fs.copyFileSync(source, dest);
-
-  const publicPath = `/content-assets/${publicRelative.split('/').map(encodeURIComponent).join('/')}`;
-  assetMap[relativePath] = publicPath;
-  return publicPath;
+function findPageForVaultPath(vaultPath, vaultRoot, pagesByPath) {
+  const contentPath = vaultPathToContentPath(vaultPath, vaultRoot, CONTENT_DIR);
+  if (!contentPath) return null;
+  return pagesByPath.get(contentPath) || null;
 }
 
 function parseMarkdownFile(relativePath, fullPath, section = null) {
@@ -390,19 +358,31 @@ function parseMarkdownFile(relativePath, fullPath, section = null) {
   };
 }
 
-function preprocessMarkdown(body, sourceFile, index, pagesByPath, assetMap, basePath, homePath) {
+function preprocessMarkdown(
+  body,
+  sourceFile,
+  vaultRoot,
+  vaultIndex,
+  pagesByPath,
+  assetMap,
+  basePath,
+  homePath
+) {
   let processed = body;
+  const ctx = makeResolveCtx(vaultRoot, vaultIndex, sourceFile);
 
   processed = processed.replace(/!\[\[([^\]]+)\]\]/g, (_, raw) => {
     const { target, width, align, wrap } = parseEmbedTarget(raw);
-    const resolved = resolveVaultPath(target, sourceFile, index);
+    const resolved = resolveAsset(target, ctx);
     if (!resolved) return `\n\n*[Missing embed: ${target}]*\n\n`;
 
-    if (isImagePath(resolved)) {
-      const publicPath = copyAsset(resolved, assetMap) || '';
+    const { vaultPath } = resolved;
+
+    if (isImagePath(vaultPath)) {
+      const publicPath = copyAssetFromVault(vaultPath, vaultRoot, ASSETS_OUT, assetMap) || '';
       const prefix = basePath || '';
       const src = `${prefix}${publicPath}`;
-      const alt = path.basename(resolved, path.extname(resolved)).replace(/[_-]/g, ' ');
+      const alt = path.basename(vaultPath, path.extname(vaultPath)).replace(/[_-]/g, ' ');
 
       if (!width && !align && !wrap) {
         return `\n\n![${alt}](${src})\n\n`;
@@ -418,8 +398,8 @@ function preprocessMarkdown(body, sourceFile, index, pagesByPath, assetMap, base
       return `\n\n<figure class="${figureClasses.join(' ')}"${figureStyle}><img src="${src}" alt="${alt}"${imgWidthAttr} loading="lazy" /></figure>\n\n`;
     }
 
-    if (resolved.endsWith('.md')) {
-      const page = pagesByPath.get(resolved);
+    if (vaultPath.endsWith('.md')) {
+      const page = findPageForVaultPath(vaultPath, vaultRoot, pagesByPath);
       if (page) {
         const href = contentHref(page, basePath, homePath);
         const title = page.frontmatter.title || page.slug;
@@ -427,29 +407,31 @@ function preprocessMarkdown(body, sourceFile, index, pagesByPath, assetMap, base
       }
     }
 
-    const publicPath = copyAsset(resolved, assetMap);
+    const publicPath = copyAssetFromVault(vaultPath, vaultRoot, ASSETS_OUT, assetMap);
     if (publicPath) {
-      return `\n\n[${path.basename(resolved)}](${basePath}${publicPath})\n\n`;
+      return `\n\n[${path.basename(vaultPath)}](${basePath}${publicPath})\n\n`;
     }
     return `\n\n*[Missing embed: ${target}]*\n\n`;
   });
 
   processed = processed.replace(/(?<!!)\[\[([^\]]+)\]\]/g, (_, raw) => {
     const { target, alias } = parseLinkTarget(`[[${raw}]]`);
-    const resolved = resolveVaultPath(target, sourceFile, index);
+    const resolved = resolveAsset(target, ctx);
     if (!resolved) return alias || target;
 
-    if (resolved.endsWith('.md')) {
-      const page = pagesByPath.get(resolved);
+    const { vaultPath } = resolved;
+
+    if (vaultPath.endsWith('.md')) {
+      const page = findPageForVaultPath(vaultPath, vaultRoot, pagesByPath);
       if (page) {
         const href = contentHref(page, basePath, homePath);
         return `[${alias || page.frontmatter.title || page.slug}](${href})`;
       }
     }
 
-    const publicPath = copyAsset(resolved, assetMap);
+    const publicPath = copyAssetFromVault(vaultPath, vaultRoot, ASSETS_OUT, assetMap);
     if (publicPath) {
-      return `[${alias || path.basename(resolved)}](${basePath}${publicPath})`;
+      return `[${alias || path.basename(vaultPath)}](${basePath}${publicPath})`;
     }
     return alias || target;
   });
@@ -462,7 +444,7 @@ function preprocessMarkdown(body, sourceFile, index, pagesByPath, assetMap, base
   return processed;
 }
 
-function scanPages(config) {
+function scanPages(config, vaultRoot) {
   const sections = fg
     .sync('*', { cwd: CONTENT_DIR, onlyDirectories: true })
     .filter((d) => !SKIP_DIRS.has(d) && !d.startsWith('.'));
@@ -527,12 +509,13 @@ function scanPages(config) {
     ...(standaloneHomePage ? [standaloneHomePage] : []),
   ];
   const pagesByPath = new Map(allContentPages.map((p) => [p.relativePath, p]));
-  const index = buildVaultIndex(CONTENT_DIR);
+  const vaultIndex = buildVaultIndex(vaultRoot);
   const assetMap = {};
   const basePath = normalizeBasePath(config.site?.basePath);
+  const avatarCtx = makeResolveCtx(vaultRoot, vaultIndex, '');
 
   if (config.author?.avatar) {
-    copyAsset(config.author.avatar.replace(/\\/g, '/'), assetMap);
+    resolveAndCopyAsset(config.author.avatar.replace(/\\/g, '/'), avatarCtx, assetMap);
   }
 
   const pages = rawPages.map((page) => ({
@@ -541,7 +524,8 @@ function scanPages(config) {
     processedBody: preprocessMarkdown(
       page.body,
       page.relativePath,
-      index,
+      vaultRoot,
+      vaultIndex,
       pagesByPath,
       assetMap,
       basePath,
@@ -557,7 +541,8 @@ function scanPages(config) {
       processedBody: preprocessMarkdown(
         note.body,
         note.relativePath,
-        index,
+        vaultRoot,
+        vaultIndex,
         pagesByPath,
         assetMap,
         basePath,
@@ -572,7 +557,8 @@ function scanPages(config) {
     processedBody: preprocessMarkdown(
       page.body,
       page.relativePath,
-      index,
+      vaultRoot,
+      vaultIndex,
       pagesByPath,
       assetMap,
       basePath,
@@ -587,7 +573,8 @@ function scanPages(config) {
         processedBody: preprocessMarkdown(
           standaloneHomePage.body,
           standaloneHomePage.relativePath,
-          index,
+          vaultRoot,
+          vaultIndex,
           pagesByPath,
           assetMap,
           basePath,
@@ -641,7 +628,7 @@ function scanPages(config) {
           p.frontmatter.journal ||
           p.frontmatter.proceedings ||
           null,
-        thumbnail: resolvePageThumbnail(p, index, assetMap, basePath),
+        thumbnail: resolvePageThumbnail(p, vaultRoot, vaultIndex, assetMap, basePath),
         frontmatter: p.frontmatter,
       })),
     };
@@ -689,10 +676,13 @@ function scanPages(config) {
       href: pageRoute({ relativePath, section, slug }, homePath),
     })),
     assets: assetMap,
-    authorAvatar:
-      config.author?.avatar && assetMap[config.author.avatar.replace(/\\/g, '/')]
-        ? `${basePath}${assetMap[config.author.avatar.replace(/\\/g, '/')]}`
-        : null,
+    authorAvatar: (() => {
+      if (!config.author?.avatar) return null;
+      const resolved = resolveAsset(config.author.avatar.replace(/\\/g, '/'), avatarCtx);
+      if (!resolved) return null;
+      const publicPath = assetMap[resolved.vaultPath];
+      return publicPath ? `${basePath}${publicPath}` : null;
+    })(),
   };
 }
 
@@ -721,7 +711,8 @@ function main() {
   purgeAssetsOut();
 
   const config = yaml.load(fs.readFileSync(configPath, 'utf8'));
-  const manifest = scanPages(config);
+  const vaultRoot = resolveVaultRoot(CONTENT_DIR, config);
+  const manifest = scanPages(config, vaultRoot);
   const template = resolveTemplateId(config);
   const theme = resolveThemeId(config);
 
@@ -733,6 +724,7 @@ function main() {
     JSON.stringify(
       {
         contentDir: CONTENT_DIR,
+        vaultRoot,
         basePath: manifest.basePath,
         template,
         theme,
@@ -745,7 +737,7 @@ function main() {
   writeSentinel();
 
   console.log(
-    `Synced ${manifest.pages.length} pages, ${Object.keys(manifest.assets).length} assets (content: ${CONTENT_DIR})`
+    `Synced ${manifest.pages.length} pages, ${Object.keys(manifest.assets).length} assets (content: ${CONTENT_DIR}, vault: ${vaultRoot})`
   );
 }
 

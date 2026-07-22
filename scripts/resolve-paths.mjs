@@ -29,12 +29,66 @@ export function resolveContentDir(argv = process.argv) {
 
 export const CONTENT_DIR = resolveContentDir();
 
+/**
+ * Walk up from contentDir looking for .obsidian/ (Obsidian vault root).
+ */
+export function detectVaultRoot(contentDir) {
+  let dir = path.resolve(contentDir);
+  while (true) {
+    if (fs.existsSync(path.join(dir, '.obsidian'))) {
+      return dir;
+    }
+    const parent = path.dirname(dir);
+    if (parent === dir) break;
+    dir = parent;
+  }
+  return path.resolve(contentDir);
+}
+
+/**
+ * Resolve Obsidian vault root for wikilink/embed resolution.
+ * Precedence: --vault > LEFOLIO_VAULT > config.vault > auto-detect.
+ */
+export function resolveVaultRoot(contentDir, config = null, argv = process.argv) {
+  const flagIndex = argv.indexOf('--vault');
+  if (flagIndex !== -1 && argv[flagIndex + 1]) {
+    return path.resolve(argv[flagIndex + 1]);
+  }
+  if (process.env.LEFOLIO_VAULT) {
+    return path.resolve(process.env.LEFOLIO_VAULT);
+  }
+  if (config?.vault !== undefined && config?.vault !== null) {
+    const value = String(config.vault).trim();
+    if (value === '.' || value === './') {
+      return path.resolve(contentDir);
+    }
+    if (path.isAbsolute(value)) {
+      return path.resolve(value);
+    }
+    return path.resolve(contentDir, value);
+  }
+  return detectVaultRoot(contentDir);
+}
+
+export function vaultArgs(argv = process.argv) {
+  const idx = argv.indexOf('--vault');
+  if (idx !== -1 && argv[idx + 1]) {
+    return ['--vault', argv[idx + 1]];
+  }
+  return [];
+}
+
 export function contentEnv(argv = process.argv) {
   const dir = resolveContentDir(argv);
-  return {
+  const vaultFlag = argv.indexOf('--vault');
+  const env = {
     ...process.env,
     LEFOLIO_CONTENT: dir,
   };
+  if (vaultFlag !== -1 && argv[vaultFlag + 1]) {
+    env.LEFOLIO_VAULT = path.resolve(argv[vaultFlag + 1]);
+  }
+  return env;
 }
 
 export function readEngineMeta() {

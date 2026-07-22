@@ -28,6 +28,24 @@ LEFOLIO_CONTENT=~/Documents/MySite npm run dev
 
 The content root is the folder that contains `config.yaml` and your markdown files directly (no `Content/` wrapper required in the vault). Build artifacts (manifest, copied assets, `.next`, `out/`) always stay in the engine directory, not in your vault.
 
+### Vault root vs content folder
+
+Obsidian wikilinks and embeds (`[[note]]`, `![[image.png]]`) resolve from the **Obsidian vault root**, which may be wider than the site content folder. For example, vault `~/Projects/Academic` with site content in `lefolio-academic/Content/`.
+
+The engine auto-detects vault root by walking up from the content folder until it finds `.obsidian/`. Override when needed:
+
+```bash
+node scripts/lefolio.mjs dev --vault ~/Projects/Academic
+```
+
+Or in `config.yaml`:
+
+```yaml
+vault: ../..   # relative to the content folder
+```
+
+Only the content folder is watched during development; assets outside it are resolved at sync time (re-run sync or edit a content file to refresh).
+
 ## Content structure
 
 ```
