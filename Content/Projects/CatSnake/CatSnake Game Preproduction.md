@@ -5,7 +5,7 @@ start_date: 2026-06-202
 tech: Unity, C#
 image_layout: featured
 live_url: https://oliver-rust.itch.io/catsnake
-thumbnail: catsnake_thumbnail.png
+thumbnail: catsnake_thumbnail_thumb.jpg
 ---
 I resumed work on my cute 3D CatSnake puzzle game, aiming to port it to Unity to streamline production and enter pre-production, building a more realistic prototype with 3D art and validating the concepts with gamers.
 

@@ -6,6 +6,7 @@ end_date: 2021-12-31
 tech: C++, C#, 3D Programming, Game Engine Development
 image_layout: featured
 live_url: https://rsxengine.com/
+thumbnail: RSX_thumb.jpg
 ---
 I worked as a contractor for Abstract to work on their game engine RSX. As I joined the team the engine was already fully functional but needed a lot of polish and bug fixing.
 

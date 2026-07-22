@@ -6,6 +6,7 @@ end_date: 2024-01-28
 tech: Wordpress, Amazon Web Services
 image_layout: featured
 live_url: https://re-connected.fr
+thumbnail: reconnected_thumb.jpg
 ---
 
 I built my first website using WordPress for my small psychotherapy practice. It is a single page and using the basic WordPress template but it does the job.

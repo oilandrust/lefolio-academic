@@ -13,7 +13,7 @@ authors:
   - Olivier Rouiller
   - Monique Teillaud
   - Camille Wormser
-thumbnail: sphere.png
+thumbnail: sphere_thumb.jpg
 ---
 
 ![[sphere.png|200|left|wrap]]

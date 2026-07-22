@@ -6,6 +6,7 @@ end_date: 2019-07-31
 tech: C++, Snowdrop, Engine Programming
 image_layout: featured
 live_url: https://www.massive.se/project/avatar-frontiers-of-pandora/
+thumbnail: Avatar-Hero_thumb.jpg
 ---
 ![[Avatar-Hero-9fcfd038d360b252414c.jpg]]
 I worked on the tech team for Avatar project for Ubisoft.

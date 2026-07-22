@@ -6,7 +6,7 @@ tech: jekyll, web
 image_layout: featured
 live_url: https://oilandrust.github.io/githubpublish-wiki/
 github_url:
-thumbnail: lefolio_logo.png
+thumbnail: lefolio_logo_thumb.jpg
 ---
 ![[lefolio-academic/Content/Projects/LeFolio/before_after.png]]
 

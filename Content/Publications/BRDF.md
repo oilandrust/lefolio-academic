@@ -12,7 +12,7 @@ authors:
   - Jan Kautz
   - Wojciech Matusik
   - Marc Alexa
-thumbnail: domes.png
+thumbnail: domes_thumb.jpg
 ---
 
 Olivier Rouiller, Bernd Bickel, Jan Kautz, Wojciech Matusik, and Marc Alexa, “3D-Printing Spatially Varying BRDFs,” _IEEE Computer Graphics and Applications_, vol. 33, no. 6, pp. 48–57, Sep. 2013. doi: [10.1109/MCG.2013.82](https://doi.org/10.1109/MCG.2013.82).
