@@ -15,6 +15,7 @@ A template is **information architecture + React shell**, not a CSS skin.
 | Template | Routing | Shape |
 |----------|---------|-------|
 | `academic` (current) | `multipage` | Sidebar + navbar + section listings |
+| `showcase` (current) | `multipage` | Top nav + hero + docs (product/marketing) |
 | `landing` (planned) | `singlepage` | Hero + `##` sections + CTA |
 | `portfolio` (planned) | `singlepage` | Hero + project cards |
 

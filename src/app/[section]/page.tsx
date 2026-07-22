@@ -1,5 +1,6 @@
 import MarkdownRenderer from '@/components/MarkdownRenderer';
-import SectionPageList from '@/templates/academic/views/SectionPageList';
+import AcademicSectionPageList from '@/templates/academic/views/SectionPageList';
+import ShowcaseSectionPageList from '@/templates/showcase/views/SectionPageList';
 import { loadManifest, getSectionRoutes } from '@/lib/content/load-manifest';
 
 export function generateStaticParams() {
@@ -13,6 +14,7 @@ export default async function SectionIndexPage({
 }) {
   const { section: sectionName } = await params;
   const manifest = loadManifest();
+  const templateId = manifest.template ?? manifest.config.template ?? 'academic';
 
   const standalonePage = manifest.standalonePages.find(
     (page) => page.segment === sectionName
@@ -49,11 +51,15 @@ export default async function SectionIndexPage({
         <p className="text-muted mb-8">Pages in this section.</p>
       ) : null}
 
-      <SectionPageList
-        display={section.display}
-        pages={section.pages}
-        highlightAuthor={manifest.config.author?.name}
-      />
+      {templateId === 'showcase' ? (
+        <ShowcaseSectionPageList display={section.display} pages={section.pages} />
+      ) : (
+        <AcademicSectionPageList
+          display={section.display}
+          pages={section.pages}
+          highlightAuthor={manifest.config.author?.name}
+        />
+      )}
     </article>
   );
 }

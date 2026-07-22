@@ -1,0 +1,24 @@
+[data-template="showcase"][data-theme="ink-dark"] {
+  --color-bg: #0a1220;
+  --color-bg-alt: #121c2e;
+  --color-bg-elevated: #1a2740;
+  --color-text: #e8eef8;
+  --color-text-muted: #9aacc4;
+  --color-border: #2a3a55;
+  --color-primary: #2890f8;
+  --color-primary-hover: #4aa0ff;
+  --color-on-primary: #0a1220;
+}
+
+[data-template="showcase"][data-theme="ink-dark"] .prose-content {
+  @apply prose-invert;
+  --tw-prose-body: var(--color-text);
+  --tw-prose-headings: var(--color-text);
+  --tw-prose-links: var(--color-primary);
+  --tw-prose-bold: var(--color-text);
+  --tw-prose-code: var(--color-text);
+  --tw-prose-pre-bg: var(--color-bg-alt);
+  --tw-prose-hr: var(--color-border);
+  --tw-prose-quotes: var(--color-text-muted);
+  --tw-prose-quote-borders: var(--color-border);
+}
