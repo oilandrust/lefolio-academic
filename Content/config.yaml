@@ -9,6 +9,10 @@ template: academic
 theme:
   preset: latex
   mode: light
+  overrides:
+    fontScale: "1.125"
+    textH1: "2.875rem"
+    textH2: "2rem"
 
 home: "About.md"
 

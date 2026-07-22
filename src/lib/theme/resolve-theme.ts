@@ -12,6 +12,12 @@ const OVERRIDE_MAP: Record<string, string> = {
   fontSans: '--font-sans',
   fontHeading: '--font-heading',
   sidebarWidth: '--sidebar-width',
+  fontScale: '--font-scale',
+  textBase: '--text-base',
+  textH1: '--text-h1',
+  textH2: '--text-h2',
+  textH3: '--text-h3',
+  leadingBody: '--leading-body',
 };
 
 export function resolveThemeId(theme?: ThemeConfig | string): string {

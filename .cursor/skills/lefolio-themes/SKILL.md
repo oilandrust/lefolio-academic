@@ -69,6 +69,12 @@ Shorthand: `theme: slate-light` (string form also supported).
 | `fontSans` | `--font-sans` |
 | `fontHeading` | `--font-heading` |
 | `sidebarWidth` | `--sidebar-width` |
+| `fontScale` | `--font-scale` (unitless multiplier on root size, e.g. `1.125`) |
+| `textBase` | `--text-base` (root em size, e.g. `1.0625rem`) |
+| `textH1` | `--text-h1` |
+| `textH2` | `--text-h2` |
+| `textH3` | `--text-h3` |
+| `leadingBody` | `--leading-body` |
 
 ## CSS layers
 

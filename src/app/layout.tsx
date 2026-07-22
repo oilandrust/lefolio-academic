@@ -21,15 +21,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   const { Shell } = template;
   const templateId = manifest.template ?? manifest.config.template ?? 'academic';
   const themeId = manifest.theme;
+  const themeStyle = themeOverrideStyle(manifest.config.theme);
 
   return (
-    <html lang="en">
-      <body
-        data-template={templateId}
-        data-theme={themeId}
-        style={themeOverrideStyle(manifest.config.theme)}
-        suppressHydrationWarning
-      >
+    <html
+      lang="en"
+      data-template={templateId}
+      data-theme={themeId}
+      style={themeStyle}
+    >
+      <body suppressHydrationWarning>
         <Shell manifest={manifest}>{children}</Shell>
       </body>
     </html>

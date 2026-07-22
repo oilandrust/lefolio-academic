@@ -7,9 +7,14 @@
 @import "../templates/academic/themes/latex-dark.css";
 @import "../templates/academic/theme.css";
 
+html {
+  font-size: calc(var(--text-base, 1rem) * var(--font-scale, 1));
+}
+
 body {
   background: var(--color-bg);
   color: var(--color-text);
+  line-height: var(--leading-body, 1.75);
   @apply antialiased;
 }
 
