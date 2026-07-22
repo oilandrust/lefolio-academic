@@ -8,7 +8,7 @@ This page is built with [LeFolio.md](https://lefolio.md), a modern open source s
 [Fork it and try it yourself on GitHub.](https://github.com/oilandrust/lefolio-academic)
 
 LeFolio is built with usability first, and favors editing with [Obsidian](https://obsidian.md). This allows to simply drag and drop images in the content. The code and the content is clearly separated so you can publish only by editing markdown and a configuration file.
-You can still ask your Coding Agent to write React components if you want more configuration, or ask him to personalise the theme, all the power to you.
+Or you can ask your Coding Agent to write React components if you want more configuration, or ask him to personalise the theme, all the power to you.
 
 ### Features:
 - Live reload: edit and see the changes immediately, even switching theme or editing configuration
