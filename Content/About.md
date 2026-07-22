@@ -13,7 +13,7 @@ Notably, I worked at Massive Entertainment, a Ubisoft Studio, on the Game Engine
 Nowadays, I am focused on making the academic publishing site feel effortless and smooth, freeing academics' creativity so they can showcase their best work and focus on their craft
 
 ## About this Page
-This page is built using my template **[LeFolio Academic](https://oilandrust.github.io/academic-sites/)**. It is designed to be easy for academics to edit and publish. Learn more about how to use it [here](https://github.com/oilandrust/lefolio-academic).
+This page is built using my template **[LeFolio Academic](https://github.com/oilandrust/lefolio-academic)**. It is designed to be easy for academics to edit and publish.
 ## How it works
 
 ```mermaid
