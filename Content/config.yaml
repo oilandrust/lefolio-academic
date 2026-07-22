@@ -7,7 +7,7 @@ site:
 template: academic
 
 theme:
-  preset: latex
+  preset: slate
   mode: light
   overrides:
     fontScale: "1.125"
