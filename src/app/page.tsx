@@ -8,15 +8,15 @@ export default function HomePage() {
   if (!home) {
     return (
       <article>
-        <h1 className="mb-6 text-3xl font-bold text-slate-900">Home</h1>
-        <p className="text-slate-600">Configure `home` in Content/config.yaml.</p>
+        <h1 className="text-heading mb-6 text-3xl font-bold">Home</h1>
+        <p className="text-muted">Configure `home` in config.yaml.</p>
       </article>
     );
   }
 
   return (
     <article>
-      <h1 className="mb-6 text-3xl font-bold text-slate-900">{home.title}</h1>
+      <h1 className="text-heading mb-6 text-3xl font-bold">{home.title}</h1>
       <MarkdownRenderer content={home.processedBody} />
     </article>
   );

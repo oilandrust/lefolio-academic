@@ -16,6 +16,7 @@ I know a few academics; I have been a PhD student myself, and I believe that aca
 
 Academics are often technical, and they can deal with technologies such as git and a static website generator like Jekyll; however, they are also busy and might appreciate having the configuration hassle of those sites limited to a few clicks.
 
+![[lefolio-academic/Content/Projects/LeFolio/lefolio_logo.png|left|wrap]]
 In addition, templates such as academic pages still mix code and content, which makes it less than ideal to edit.
 
 I am researching whether a service or a product could help some acedemics to show their best work!

@@ -14,13 +14,13 @@ export default async function ContentPage({
   const page = getPage(section, slug);
 
   if (!page) {
-    return <p className="text-slate-600">Page not found.</p>;
+    return <p className="text-muted">Page not found.</p>;
   }
 
   return (
     <article>
-      <p className="mb-2 text-sm uppercase tracking-wide text-slate-400">{page.section}</p>
-      <h1 className="mb-6 text-3xl font-bold text-slate-900">{page.title}</h1>
+      <p className="text-muted mb-2 text-sm uppercase tracking-wide">{page.section}</p>
+      <h1 className="text-heading mb-6 text-3xl font-bold">{page.title}</h1>
       <MarkdownRenderer content={page.processedBody} />
     </article>
   );

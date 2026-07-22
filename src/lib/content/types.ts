@@ -20,11 +20,19 @@ export type NavigationConfig =
   | Record<string, string | null>
   | Array<string | Record<string, string>>;
 
+export interface ThemeConfig {
+  preset?: string;
+  mode?: 'light' | 'dark' | 'system';
+  overrides?: Record<string, string>;
+}
+
 export interface ContentConfig {
   site: SiteConfig;
   home: string;
   author: AuthorConfig;
   navigation: NavigationConfig;
+  template?: string;
+  theme?: ThemeConfig | string;
 }
 
 export interface PageFrontmatter {
@@ -98,6 +106,8 @@ export interface StandalonePage {
 
 export interface ContentManifest {
   generatedAt: string;
+  template: string;
+  theme: string;
   config: ContentConfig;
   basePath: string;
   home: {

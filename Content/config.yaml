@@ -4,6 +4,12 @@ site:
   url: "https://oilandrust.github.io/lefolio-academic"
   basePath: "/lefolio-academic"
 
+template: academic
+
+theme:
+  preset: slate
+  mode: light
+
 home: "About.md"
 
 author:

@@ -2,9 +2,9 @@ import fs from 'fs';
 import path from 'path';
 import yaml from 'js-yaml';
 import { fileURLToPath } from 'url';
+import { resolveContentDir, readEngineMeta } from './scripts/resolve-paths.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const configPath = path.join(__dirname, 'Content', 'config.yaml');
 
 function normalizeBasePath(value) {
   if (!value || value === '/') return '';
@@ -12,6 +12,14 @@ function normalizeBasePath(value) {
 }
 
 function readBasePath() {
+  const meta = readEngineMeta();
+  if (meta?.basePath !== undefined) {
+    return normalizeBasePath(meta.basePath);
+  }
+
+  const contentDir = resolveContentDir();
+  const configPath = path.join(contentDir, 'config.yaml');
+
   try {
     const config = yaml.load(fs.readFileSync(configPath, 'utf8'));
     return normalizeBasePath(config.site?.basePath);

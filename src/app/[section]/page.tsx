@@ -1,5 +1,5 @@
 import MarkdownRenderer from '@/components/MarkdownRenderer';
-import SectionPageList from '@/components/SectionPageList';
+import SectionPageList from '@/templates/academic/views/SectionPageList';
 import { loadManifest, getSectionRoutes } from '@/lib/content/load-manifest';
 
 export function generateStaticParams() {
@@ -20,7 +20,7 @@ export default async function SectionIndexPage({
   if (standalonePage) {
     return (
       <article>
-        <h1 className="mb-6 text-3xl font-bold text-slate-900">{standalonePage.title}</h1>
+        <h1 className="text-heading mb-6 text-3xl font-bold">{standalonePage.title}</h1>
         <MarkdownRenderer content={standalonePage.processedBody} />
       </article>
     );
@@ -29,7 +29,7 @@ export default async function SectionIndexPage({
   const section = manifest.sections.find((s) => s.name === sectionName);
 
   if (!section) {
-    return <p className="text-slate-600">Section not found.</p>;
+    return <p className="text-muted">Section not found.</p>;
   }
 
   const title = section.index?.title || section.name;
@@ -37,7 +37,7 @@ export default async function SectionIndexPage({
 
   return (
     <article>
-      <h1 className="mb-2 text-3xl font-bold text-slate-900">{title}</h1>
+      <h1 className="text-heading mb-2 text-3xl font-bold">{title}</h1>
 
       {section.index?.processedBody ? (
         <div className="mb-2">
@@ -46,7 +46,7 @@ export default async function SectionIndexPage({
       ) : null}
 
       {showDefaultIntro ? (
-        <p className="mb-8 text-slate-600">Pages in this section.</p>
+        <p className="text-muted mb-8">Pages in this section.</p>
       ) : null}
 
       <SectionPageList

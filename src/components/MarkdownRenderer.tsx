@@ -74,7 +74,7 @@ function CodeBlock({ className, children, ...props }: React.ComponentPropsWithou
 
 export default function MarkdownRenderer({ content }: MarkdownRendererProps) {
   return (
-    <div className="prose-academic">
+    <div className="prose-content">
       <ReactMarkdown
         remarkPlugins={remarkPlugins}
         rehypePlugins={rehypePlugins}
