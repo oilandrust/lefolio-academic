@@ -64,8 +64,8 @@ Each `.md` file becomes a page at `/{section}/{slug}/`. Configure the homepage w
 ```yaml
 template: academic
 theme:
-  preset: slate
-  mode: light    # light | dark | system (system defaults to light at build)
+  preset: slate    # or latex — Latin Modern serif, maroon links (math homepage style)
+  mode: light      # light | dark | system (system defaults to light at build)
   overrides:
     primary: "#2563eb"
 ```
@@ -96,6 +96,19 @@ theme:
 | `npm run dev` | Sync + watch content + Next.js dev server |
 | `npm run build` | Sync + static export to `out/` |
 | `node scripts/lefolio.mjs dev --content <path>` | Dev with external content vault |
+
+## Agent skills
+
+Project-scoped Cursor skills in `.cursor/skills/` teach coding agents how to work on LeFolio:
+
+| Skill | Load when |
+|-------|-----------|
+| `lefolio-templates` | Creating templates, shell/layout, SectionPageList, `template:` config |
+| `lefolio-themes` | Theme presets, CSS tokens, light/dark, `theme:` config |
+| `lefolio-content` | Editing Content/, wikilinks, embeds, frontmatter, vault paths |
+| `lefolio-deploy` | GitHub Pages, basePath, CI workflow, deploy troubleshooting |
+
+Each skill has a `SKILL.md` (instructions) and `reference.md` (tables/checklists). Wiki design docs live in `wiki/lefolio/` for deeper architecture context.
 
 ## License
 

@@ -7,7 +7,7 @@ site:
 template: academic
 
 theme:
-  preset: slate
+  preset: latex
   mode: light
 
 home: "About.md"

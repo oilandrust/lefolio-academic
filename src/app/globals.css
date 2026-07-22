@@ -1,7 +1,10 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
+@import "../templates/academic/themes/latex-fonts.css";
 @import "../templates/academic/themes/slate-light.css";
 @import "../templates/academic/themes/slate-dark.css";
+@import "../templates/academic/themes/latex-light.css";
+@import "../templates/academic/themes/latex-dark.css";
 @import "../templates/academic/theme.css";
 
 body {
