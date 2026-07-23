@@ -34,6 +34,9 @@ navigation:
   - Publications
   - CV
   - Guide: "Pages/Guide.md"
+
+analytics:
+  google: "G-XXXXXXXXXX"   # GA4 measurement ID (optional)
 ```
 
 ### Site settings
@@ -44,6 +47,7 @@ navigation:
 | `site.description` | SEO description |
 | `site.url` | Canonical site URL |
 | `site.basePath` | GitHub Pages subpath (e.g. `/lefolio-academic`) |
+| `analytics.google` | GA4 measurement ID (`G-…`); omitted = no analytics |
 
 For a user site at `username.github.io`, set `basePath: ""`. For a project site at `username.github.io/repo-name`, set `basePath: "/repo-name"`.
 

@@ -16,6 +16,9 @@ theme:
 
 home: "About.md"
 
+analytics:
+  google: G-CZGKWBFQLF
+
 author:
   name: "Olivier Rouiller"
   pronouns: "he/him"

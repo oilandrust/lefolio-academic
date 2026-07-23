@@ -70,6 +70,15 @@ theme:
     primary: "#2563eb"
 ```
 
+### Analytics
+
+```yaml
+analytics:
+  google: "G-XXXXXXXXXX"   # GA4 measurement ID
+```
+
+Injected by the core layout (all templates). Omit the key to disable tracking.
+
 ### Markdown features
 
 - Wikilinks: `[[about]]`, `[[Page|Label]]`
